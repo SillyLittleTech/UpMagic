@@ -1,4 +1,4 @@
-name = "slt-status"
+name = "upmagic"
 compatibility_date = "2024-05-01"
 
 # Use a Worker + site configuration so Wrangler deploys both the Worker and static files
