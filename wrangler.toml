@@ -1,4 +1,4 @@
-name = "slt-status"
+name = "upmagic"
 compatibility_date = "2024-05-01"
 
 # Single-worker + static `site` configuration so `wrangler` publishes both
