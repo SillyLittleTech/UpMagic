@@ -430,14 +430,6 @@ textarea.form-control {
   transform: translateY(-1px);
 }
 
-.btn-danger {
-  background-color: color-mix(in srgb, var(--status-down) 86%, #8a2222);
-}
-
-.btn-danger:hover {
-  background-color: color-mix(in srgb, var(--status-down) 92%, #6f1111);
-}
-
 .feedback-message {
   margin-top: 0.8rem;
   min-height: 1.2rem;
@@ -501,40 +493,6 @@ textarea.form-control {
   margin-top: 1.2rem;
 }
 
-.admin-incident-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.admin-incident-item {
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.8rem;
-  background-color: color-mix(in srgb, var(--card-bg) 96%, transparent);
-}
-
-.admin-incident-meta {
-  min-width: 0;
-}
-
-.admin-incident-title {
-  font-size: 0.92rem;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.admin-incident-subtitle {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-}
-
 @media (max-width: 860px) {
   .top-hero {
     flex-direction: column;
@@ -566,10 +524,5 @@ textarea.form-control {
   .incident-header {
     flex-direction: column;
     gap: 0.35rem;
-  }
-
-  .admin-incident-item {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }

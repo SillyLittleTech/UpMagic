@@ -1,5 +1,4 @@
-// worker/src/index.js
-
+// Worker entry copied from frontend/_worker.js to run as a standalone Worker + site
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -98,10 +97,11 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
-    // If ASSETS is missing (deployment/config issue), return a small friendly page
-    // instead of throwing so the admin APIs still work and logs are clearer.
-    const fallbackHtml = `<!doctype html><html><head><meta charset="utf-8"><title>Static assets unavailable</title></head><body><h1>Static assets unavailable</h1><p>The Worker runtime does not have an <code>ASSETS</code> binding. Check your Pages/Workers configuration.</p><p>Visit <a href="/__bindings">/__bindings</a> to inspect runtime bindings.</p></body></html>`;
-    return new Response(fallbackHtml, { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 500 });
+    // No ASSETS binding available. Return a helpful HTML response instructing to enable
+    // static assets via `wrangler dev` or `wrangler deploy` with a `[site]` config.
+
+    const fallbackHtml = `<!doctype html><html><head><meta charset="utf-8"><title>Static assets unavailable</title></head><body><h1>Static assets unavailable</h1><p>The Worker runtime does not have an <code>ASSETS</code> binding. Check your Workers/Pages configuration.</p><p>Visit <a href="/__bindings">/__bindings</a> to inspect runtime bindings.</p></body></html>`;
+    return new Response(fallbackHtml, { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 200 });
   },
 
   async scheduled(event, env, ctx) {
@@ -109,6 +109,7 @@ export default {
   }
 };
 
+// heartbeat and helpers (same as frontend/_worker.js)
 async function runHeartbeat(env) {
   const targets = [
     { id: 'slt_main', url: 'https://sillylittle.tech', name: 'SillyLittle.tech' },
@@ -185,25 +186,14 @@ async function runHeartbeat(env) {
     console.error('Failed to fetch maintenance issues', e);
   }
 
-  // Webhooks are skipped for now per request
-  /*
-  if (statusChanged) {
-    for (const msg of notifications) {
-      await sendWebhook(env.NOTIFY_WEBHOOK_URL, msg);
-    }
-  }
-  */
-
   await saveState(env, state);
 }
 
 async function saveState(env, state) {
-  // Save to KV
   if (env.STATUS_KV) {
      await env.STATUS_KV.put('current_state', JSON.stringify(state));
   }
 
-  // Double-write to GitHub Gist
   if (env.GITHUB_GIST_ID && env.ISSUES_PAT) {
     try {
       await fetch(`https://api.github.com/gists/${env.GITHUB_GIST_ID}`, {
@@ -213,13 +203,7 @@ async function saveState(env, state) {
           'Authorization': `Bearer ${env.ISSUES_PAT}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          files: {
-            'status.json': {
-              content: JSON.stringify(state, null, 2)
-            }
-          }
-        })
+        body: JSON.stringify({ files: { 'status.json': { content: JSON.stringify(state, null, 2) } } })
       });
     } catch (e) {
       console.error('Failed to update GitHub Gist', e);
@@ -235,7 +219,6 @@ function appendServiceHistory(state, serviceId, entry) {
 
   state.historyByService[serviceId].push(entry);
 
-  // Keep roughly one day of minute heartbeats.
   if (state.historyByService[serviceId].length > 1440) {
     state.historyByService[serviceId] = state.historyByService[serviceId].slice(-1440);
   }
@@ -244,10 +227,6 @@ function appendServiceHistory(state, serviceId, entry) {
 async function sendWebhook(url, message) {
   if (!url) return;
   try {
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: `**Status Update:** ${message}` })
-    });
+    await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: `**Status Update:** ${message}` }) });
   } catch(e) {}
 }

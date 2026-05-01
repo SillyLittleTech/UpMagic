@@ -1,9 +1,8 @@
 name = "slt-status"
 compatibility_date = "2024-05-01"
 
-# Single-worker + static `site` configuration so `wrangler` publishes both
-# the Worker entrypoint and the `frontend/` static files together.
-main = "frontend/_worker.js"
+# Use a Worker + site configuration so Wrangler deploys both the Worker and static files
+main = "worker/index.js"
 
 [site]
 bucket = "./frontend"

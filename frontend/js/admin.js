@@ -1,6 +1,7 @@
-const WORKER_URL = ''; // Relative to the same domain in CF Pages
-
-document.addEventListener('DOMContentLoaded', loadIncidentList);
+// During local development (static server on localhost), point API calls to the local Worker.
+const WORKER_URL = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+    ? 'http://127.0.0.1:8787'
+    : '';
 
 async function updateServiceStatus() {
     const serviceId = document.getElementById('service-id').value;
@@ -53,97 +54,12 @@ async function postIncident() {
             setFeedback(feedback, 'Incident posted successfully!', 'success');
             document.getElementById('inc-title').value = '';
             document.getElementById('inc-desc').value = '';
-            await loadIncidentList();
         } else {
             setFeedback(feedback, `Failed: ${res.statusText}`, 'error');
         }
     } catch (e) {
         setFeedback(feedback, `Error: ${e.message}`, 'error');
     }
-}
-
-async function loadIncidentList() {
-    const listEl = document.getElementById('admin-incidents-list');
-    if (!listEl) return;
-
-    listEl.innerHTML = '<p class="loading-text">Loading investigation entries...</p>';
-
-    try {
-        const res = await fetch(`${WORKER_URL}/api/status`);
-        if (!res.ok) {
-            listEl.innerHTML = '<p class="loading-text">Unable to load entries right now.</p>';
-            return;
-        }
-
-        const data = await res.json();
-        const incidents = Array.isArray(data.incidents) ? data.incidents : [];
-
-        if (incidents.length === 0) {
-            listEl.innerHTML = '<p class="loading-text">No entries in the investigation list.</p>';
-            return;
-        }
-
-        listEl.innerHTML = incidents.map((incident) => {
-            const createdLabel = incident.createdAt ? new Date(incident.createdAt).toLocaleString() : 'Unknown time';
-            return `
-                <article class="admin-incident-item">
-                    <div class="admin-incident-meta">
-                        <p class="admin-incident-title">${escapeHtml(incident.title || 'Untitled')}</p>
-                        <p class="admin-incident-subtitle">${escapeHtml(incident.status || 'Unknown')} • ${escapeHtml(createdLabel)}</p>
-                    </div>
-                    <button class="btn btn-danger" onclick="removeIncident('${encodeURIComponent(incident.id || '')}')">Remove</button>
-                </article>
-            `;
-        }).join('');
-    } catch (e) {
-        listEl.innerHTML = '<p class="loading-text">Unable to load entries right now.</p>';
-    }
-}
-
-async function removeIncident(encodedIncidentId) {
-    const incidentId = decodeURIComponent(encodedIncidentId || '');
-    const feedback = document.getElementById('remove-incident-feedback');
-    if (!incidentId) {
-        setFeedback(feedback, 'Missing incident ID.', 'error');
-        return;
-    }
-
-    setFeedback(feedback, '', null);
-
-    try {
-        const res = await fetch(`${WORKER_URL}/api/admin/remove_incident`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ incidentId })
-        });
-
-        if (res.ok) {
-            setFeedback(feedback, 'Investigation entry removed.', 'success');
-            await loadIncidentList();
-        } else {
-            let errorMessage = `Failed: ${res.statusText}`;
-            try {
-                const body = await res.json();
-                if (body?.error) errorMessage = `Failed: ${body.error}`;
-            } catch {
-                // keep fallback message
-            }
-            setFeedback(feedback, errorMessage, 'error');
-        }
-    } catch (e) {
-        setFeedback(feedback, `Error: ${e.message}`, 'error');
-    }
-}
-
-function escapeHtml(value) {
-    return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
 }
 
 function setFeedback(element, message, type) {

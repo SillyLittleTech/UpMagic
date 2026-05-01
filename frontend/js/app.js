@@ -1,4 +1,7 @@
-const WORKER_URL = ''; // Relative to the same domain in CF Pages
+// During local development (static server on localhost), point API calls to the local Worker.
+const WORKER_URL = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+    ? 'http://127.0.0.1:8787'
+    : '';
 const GIST_URL = 'https://gist.githubusercontent.com/MOCK_USER/MOCK_GIST_ID/raw/status.json'; // TO BE REPLACED
 
 async function fetchStatus() {
