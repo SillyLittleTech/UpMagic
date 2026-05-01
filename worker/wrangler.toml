@@ -1,0 +1,9 @@
+name = "slt-status-worker"
+compatibility_date = "2024-05-01"
+
+[[kv_namespaces]]
+binding = "STATUS_KV"
+id = "d6179b2f901645de81b9805c4e7ac591"
+
+[triggers]
+crons = ["* * * * *"]

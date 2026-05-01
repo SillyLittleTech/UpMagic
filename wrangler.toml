@@ -1,6 +1,14 @@
-name = "slt-status-page"
+name = "slt-status"
 compatibility_date = "2024-05-01"
-pages_build_output_dir = "./frontend"
+
+# Single-worker + static `site` configuration so `wrangler` publishes both
+# the Worker entrypoint and the `frontend/` static files together.
+main = "frontend/_worker.js"
+
+[site]
+bucket = "./frontend"
+include = ["**/*"]
+exclude = ["**/.git/*"]
 
 [vars]
 # GITHUB_GIST_ID = "" (Set via secrets or vars later)
