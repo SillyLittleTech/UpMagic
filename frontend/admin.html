@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLT Status - Admin</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="page-shell page-shell-admin">
+        <div class="ambient-glow ambient-glow-one"></div>
+        <div class="ambient-glow ambient-glow-two"></div>
+
+        <div class="container">
+            <header class="top-hero top-hero-admin">
+                <div class="hero-brand">
+                    <img src="icon.png" alt="SillyLittleTech Icon" class="hero-logo">
+                    <div>
+                        <h1>Admin Dashboard</h1>
+                        <p class="subtitle">Control overrides and publish incident updates.</p>
+                    </div>
+                </div>
+                <a href="index.html" class="ghost-link">&larr; Back to Status Page</a>
+            </header>
+
+            <div class="admin-grid">
+                <section class="section-card admin-panel">
+                    <h2 class="section-title">Force Service Status</h2>
+                    <p class="admin-panel-description">Override a service's automated heartbeat status.</p>
+                    
+                    <div class="form-group">
+                        <label for="service-id">Service</label>
+                        <select id="service-id" class="form-control">
+                            <option value="slt_main">SillyLittle.tech</option>
+                            <option value="slt_socks">Socks (SLT)</option>
+                            <option value="slt_projects">Projects (SLT)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="force-status">Status Override</label>
+                        <select id="force-status" class="form-control">
+                            <option value="Auto">Auto (Heartbeat)</option>
+                            <option value="Operational">Operational</option>
+                            <option value="Maintaining">Maintaining</option>
+                            <option value="Down">Down</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn" onclick="updateServiceStatus()">Update Service</button>
+                    <p id="service-feedback" class="feedback-message"></p>
+                </section>
+
+                <section class="section-card admin-panel">
+                    <h2 class="section-title">Post Incident Update</h2>
+                    <div class="form-group">
+                        <label for="inc-title">Title</label>
+                        <input type="text" id="inc-title" class="form-control" placeholder="e.g. Network Instability">
+                    </div>
+                    <div class="form-group">
+                        <label for="inc-status">Overall Status</label>
+                        <select id="inc-status" class="form-control">
+                            <option value="Investigating">Investigating</option>
+                            <option value="Identified">Identified</option>
+                            <option value="Monitoring">Monitoring</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="inc-desc">Description</label>
+                        <textarea id="inc-desc" class="form-control" rows="4" placeholder="Detailed update..."></textarea>
+                    </div>
+                    <button class="btn" onclick="postIncident()">Post Update</button>
+                    <p id="incident-feedback" class="feedback-message"></p>
+                </section>
+
+                <section class="section-card admin-panel">
+                    <h2 class="section-title">Investigation List</h2>
+                    <p class="admin-panel-description">Remove investigation entries that should no longer appear on the status page.</p>
+                    <div id="admin-incidents-list" class="admin-incident-list">
+                        <p class="loading-text">Loading investigation entries...</p>
+                    </div>
+                    <p id="remove-incident-feedback" class="feedback-message"></p>
+                </section>
+            </div>
+
+            <footer class="page-footer page-footer-admin">
+                <a href="index.html">Status Page</a> | 
+                Monitoring by SLT Edge Workers
+            </footer>
+        </div>
+    </div>
+    <script src="js/admin.js"></script>
+</body>
+</html>

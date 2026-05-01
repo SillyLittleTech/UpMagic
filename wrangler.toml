@@ -1,0 +1,16 @@
+name = "slt-status-page"
+compatibility_date = "2024-05-01"
+pages_build_output_dir = "./frontend"
+
+[vars]
+# GITHUB_GIST_ID = "" (Set via secrets or vars later)
+# ISSUES_PAT = "" (Set via secrets)
+# NOTIFY_WEBHOOK_URL = "" (Set via secrets)
+
+[[kv_namespaces]]
+binding = "STATUS_KV"
+id = "d6179b2f901645de81b9805c4e7ac591"
+preview_id = "59e7164e44154d7fa79b2a093b338530"
+
+[triggers]
+crons = ["* * * * *"] # Run every minute for heartbeat

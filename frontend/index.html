@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SillyLittleTech Status</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="page-shell">
+        <div class="ambient-glow ambient-glow-one"></div>
+        <div class="ambient-glow ambient-glow-two"></div>
+
+        <div class="container">
+            <header class="top-hero">
+                <div class="hero-brand">
+                    <img src="icon.png" alt="SillyLittleTech Icon" class="hero-logo">
+                    <div>
+                        <h1>SillyLittleTech Status</h1>
+                        <p class="subtitle">Real-time transparency for our digital infrastructure.</p>
+                    </div>
+                </div>
+                <div class="hero-meta">
+                    <span class="live-dot" aria-hidden="true"></span>
+                    <span>Live heartbeat checks every minute</span>
+                </div>
+            </header>
+
+            <div id="outage-banner" class="outage-banner">
+                Cloudflare Edge is not responding (Partial Outage) - Displaying cached state from GitHub
+            </div>
+
+            <div class="section-card">
+                <h2 class="section-title">System Status</h2>
+                <div id="services-container">
+                    <p class="loading-text">Loading status...</p>
+                </div>
+            </div>
+
+            <div id="maintenance-section" class="section-card" style="display: none;">
+                <h2 class="section-title">Scheduled Maintenance</h2>
+                <div id="maintenance-container"></div>
+            </div>
+
+            <div class="section-card">
+                <h2 class="section-title">Recent Incidents</h2>
+                <div id="incidents-container">
+                    <p class="loading-text">No recent incidents.</p>
+                </div>
+            </div>
+        
+            <footer class="page-footer">
+                <a href="admin.html">Admin Dashboard</a> | 
+                Monitoring by SLT Edge Workers
+            </footer>
+        </div>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+</html>

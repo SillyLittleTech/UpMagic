@@ -1,0 +1,12 @@
+{
+  "name": "slt-status-page",
+  "version": "1.0.0",
+  "description": "Cloudflare Pages project for SLT Status Page",
+  "scripts": {
+    "dev": "wrangler pages dev ./frontend",
+    "deploy": "wrangler pages deploy ./frontend"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
