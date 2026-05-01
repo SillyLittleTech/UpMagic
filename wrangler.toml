@@ -20,4 +20,4 @@ id = "d6179b2f901645de81b9805c4e7ac591"
 preview_id = "59e7164e44154d7fa79b2a093b338530"
 
 [triggers]
-crons = ["* * * * *"] # Run every minute for heartbeat
+crons = ["*/5 * * * *"] # Run every 5 minutes for heartbeat
