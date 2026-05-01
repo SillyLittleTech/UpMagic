@@ -123,8 +123,14 @@ async function runHeartbeat(env) {
   if (!state.historyByService) state.historyByService = {};
 
   let statusChanged = false;
+  let needsSave = false;
   let notifications = [];
   const heartbeatAt = Date.now();
+  const todayUTC = new Date(heartbeatAt).toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+  // Save at most every 15 minutes for latency/history freshness (~96 writes/day on free tier)
+  const PERIODIC_SAVE_INTERVAL_MS = 15 * 60 * 1000;
+  const isPeriodicSave = heartbeatAt - (state._lastSaveTime || 0) >= PERIODIC_SAVE_INTERVAL_MS;
 
   for (const target of targets) {
     if (state.services[target.id]?.isManual) {
@@ -168,25 +174,56 @@ async function runHeartbeat(env) {
       status: newStatus,
       latency: latency
     });
+
+    // Internal log every heartbeat (no KV write)
+    console.log(`[heartbeat] ${target.name}: ${newStatus}${latency !== null ? ` (${latency}ms)` : ''}`);
   }
 
-  // Fetch maintained issues from ProjectHub
-  try {
-    const issuesRes = await fetch('https://api.github.com/repos/SillyLittleTech/projecthub/issues?labels=maintain&state=open', {
-      headers: {
-        'User-Agent': 'SLT-Status-Worker',
-        'Authorization': env.ISSUES_PAT ? `Bearer ${env.ISSUES_PAT}` : ''
+  // Fetch maintained issues from ProjectHub at most once per day.
+  // Track attempt day separately from success day so a non-2xx response
+  // doesn't cause unbounded retries on every heartbeat.
+  const lastIssuesFetchAttempt = state._lastIssuesFetchAttemptDay || '';
+  if (lastIssuesFetchAttempt !== todayUTC) {
+    state._lastIssuesFetchAttemptDay = todayUTC; // record attempt regardless of outcome
+    needsSave = true; // persist the attempt date so retries are bounded
+    try {
+      const issuesRes = await fetch('https://api.github.com/repos/SillyLittleTech/projecthub/issues?labels=maintain&state=open', {
+        headers: {
+          'User-Agent': 'SLT-Status-Worker',
+          'Authorization': env.ISSUES_PAT ? `Bearer ${env.ISSUES_PAT}` : ''
+        }
+      });
+      if (issuesRes.ok) {
+        const issues = await issuesRes.json();
+        state.maintenance = issues.map(i => ({ title: i.title, url: i.html_url, created_at: i.created_at }));
+        state._lastIssuesFetchDay = todayUTC;
+        console.log(`[daily] Fetched ${issues.length} maintenance issue(s) for ${todayUTC}`);
+      } else {
+        console.error(`[daily] Issues fetch failed: HTTP ${issuesRes.status} for ${todayUTC}`);
       }
-    });
-    if (issuesRes.ok) {
-      const issues = await issuesRes.json();
-      state.maintenance = issues.map(i => ({ title: i.title, url: i.html_url, created_at: i.created_at }));
+    } catch (e) {
+      console.error('Failed to fetch maintenance issues', e);
     }
-  } catch (e) {
-    console.error('Failed to fetch maintenance issues', e);
   }
 
-  await saveState(env, state);
+  // Only write to KV when something meaningful changed:
+  //   - status change: immediate (for accurate frontend display)
+  //   - periodic (every 15 min): keeps latency/history reasonably fresh (~96 writes/day)
+  //   - daily: ensures a flush even during quiet periods + logs a summary
+  //   - needsSave: issues fetch attempt date or maintenance list must be persisted
+  const lastDailySaveDate = state._lastDailySaveDay || '';
+  const isDailySave = lastDailySaveDate !== todayUTC;
+  if (statusChanged || needsSave || isDailySave || isPeriodicSave) {
+    state._lastSaveTime = heartbeatAt; // reset the 15-min clock on any save
+    if (isDailySave) {
+      state._lastDailySaveDay = todayUTC;
+      const summary = Object.entries(state.services)
+        .map(([, svc]) => `${svc.name}: ${svc.status}`)
+        .join(', ');
+      console.log(`[daily summary] ${todayUTC} — ${summary}`);
+    }
+    await saveState(env, state);
+  }
 }
 
 async function saveState(env, state) {
