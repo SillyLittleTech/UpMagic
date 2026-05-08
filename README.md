@@ -2,6 +2,11 @@
 
 A decentralized, edge-computed monitoring tool built with Cloudflare Workers and a resilient static frontend.
 
+## Testing
+- Run `npm run dev` to test the UI.
+- Run `npm run dev:scheduled` to test the backend.
+- Run `npm run trigger:scheduled` to force a refresh of data.
+
 ## Architecture
 
 - **Worker:** A Cloudflare Worker runs a cron trigger every minute to check the health of target services (`sillylittle.tech`, `socks.sillylittle.tech`, `projects.sillylittle.tech`). It stores the state in Cloudflare KV and double-writes to a GitHub Gist.
