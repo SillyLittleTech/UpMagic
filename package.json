@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "dev:scheduled": "wrangler dev --test-scheduled",
+    "trigger:scheduled": "curl http://127.0.0.1:8787/__scheduled?cron=%2A%2F5%20%2A%20%2A%20%2A%20%2A",
     "deploy": "wrangler deploy",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy"
