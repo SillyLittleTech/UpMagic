@@ -2,10 +2,10 @@
 
 A decentralized, edge-computed monitoring tool built with Cloudflare Workers and a resilient static frontend.
 
-# Testing
-run `npm run dev` to test the Ui
-run `npm run dev:scheduled` to test the backend
-run `npm run trigger:scheduled` to force a refresh of data
+## Testing
+- Run `npm run dev` to test the UI.
+- Run `npm run dev:scheduled` to test the backend.
+- Run `npm run trigger:scheduled` to force a refresh of data.
 
 ## Architecture
 

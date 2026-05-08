@@ -1,4 +1,19 @@
 // Worker entry copied from frontend/_worker.js to run as a standalone Worker + site
+const SERVICES = {
+  slt_main: { name: 'SillyLittle.tech (lander)', url: 'https://sillylittle.tech' },
+  slt_socks: { name: 'Documentation (socks.@)', url: 'https://socks.sillylittle.tech' },
+  slt_projects: { name: 'Projects (projects.@)', url: 'https://projects.sillylittle.tech' },
+  hotlinks: { name: 'HotLinks (share.@)', url: 'https://share.sillylittle.tech/heartbeat' }
+};
+
+function createDefaultState() {
+  return { services: {}, incidents: [], maintenance: [], historyByService: {} };
+}
+
+async function getCurrentState(env) {
+  if (!env.STATUS_KV) return createDefaultState();
+  return await env.STATUS_KV.get('current_state', 'json') || createDefaultState();
+}
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -27,7 +42,7 @@ export default {
     }
 
     if (pathname === '/api/status') {
-      const state = await env.STATUS_KV.get('current_state', 'json') || { services: {}, incidents: [], maintenance: [], historyByService: {} };
+      const state = await getCurrentState(env);
       normalizeServiceState(state);
       return new Response(JSON.stringify(state), {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -41,17 +56,11 @@ export default {
         
         if (pathname === '/api/admin/update_service') {
           // Expect { serviceId: string, status: string }
-          let state = await env.STATUS_KV.get('current_state', 'json') || { services: {}, incidents: [], maintenance: [], historyByService: {} };
+          let state = await getCurrentState(env);
           if (!state.services) state.services = {};
           if (!state.historyByService) state.historyByService = {};
-          
-          const targetsMap = {
-            'slt_main': 'SillyLittle.tech (lander)',
-            'slt_socks': 'Documentation (socks.@)',
-            'slt_projects': 'Projects (projects.@)',
-            'hotlinks': 'HotLinks (share.@)'
-          };
-          const existingName = state.services[body.serviceId]?.name || targetsMap[body.serviceId] || body.serviceId;
+
+          const existingName = state.services[body.serviceId]?.name || SERVICES[body.serviceId]?.name || body.serviceId;
           
           state.services[body.serviceId] = {
             name: existingName,
@@ -78,7 +87,7 @@ export default {
         
         if (pathname === '/api/admin/incident') {
           // Expect { title: string, description: string, status: string }
-          let state = await env.STATUS_KV.get('current_state', 'json') || { services: {}, incidents: [], maintenance: [], historyByService: {} };
+          let state = await getCurrentState(env);
           if (!state.incidents) state.incidents = [];
 
           state.incidents.unshift({
@@ -113,15 +122,9 @@ export default {
 
 // heartbeat and helpers (same as frontend/_worker.js)
 async function runHeartbeat(env) {
-  const targets = [
-    { id: 'slt_main', url: 'https://sillylittle.tech', name: 'SillyLittle.tech (lander)' },
-    { id: 'slt_socks', url: 'https://socks.sillylittle.tech', name: 'Documentation (socks.@)' },
-    { id: 'slt_projects', url: 'https://projects.sillylittle.tech', name: 'Projects (projects.@)' },
-    { id: 'hotlinks', url: 'https://share.sillylittle.tech/heartbeat', name: 'HotLinks (share.@)' }
-  ];
+  const targets = Object.entries(SERVICES).map(([id, service]) => ({ id, ...service }));
 
-  let state = await env.STATUS_KV.get('current_state', 'json');
-  if (!state) state = { services: {}, incidents: [], maintenance: [], historyByService: {} };
+  let state = await getCurrentState(env);
   if (!state.services) state.services = {};
   if (!state.historyByService) state.historyByService = {};
   normalizeServiceState(state);
@@ -269,17 +272,10 @@ function appendServiceHistory(state, serviceId, entry) {
 function normalizeServiceState(state) {
   if (!state.services) state.services = {};
 
-  const canonicalNames = {
-    slt_main: 'SillyLittle.tech (lander)',
-    slt_socks: 'Documentation (socks.@)',
-    slt_projects: 'Projects (projects.@)',
-    hotlinks: 'HotLinks (share.@)'
-  };
-
-  for (const [serviceId, serviceName] of Object.entries(canonicalNames)) {
+  for (const [serviceId, service] of Object.entries(SERVICES)) {
     if (!state.services[serviceId]) {
       state.services[serviceId] = {
-        name: serviceName,
+        name: service.name,
         status: 'Pending Check',
         lastUpdated: null,
         latency: null,
@@ -288,7 +284,7 @@ function normalizeServiceState(state) {
       continue;
     }
 
-    state.services[serviceId].name = serviceName;
+    state.services[serviceId].name = service.name;
   }
 }
 
