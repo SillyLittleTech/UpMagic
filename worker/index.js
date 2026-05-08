@@ -27,8 +27,9 @@ export default {
     }
 
     if (pathname === '/api/status') {
-      const state = await env.STATUS_KV.get('current_state');
-      return new Response(state || JSON.stringify({ services: {}, incidents: [], maintenance: [], historyByService: {} }), {
+      const state = await env.STATUS_KV.get('current_state', 'json') || { services: {}, incidents: [], maintenance: [], historyByService: {} };
+      normalizeServiceState(state);
+      return new Response(JSON.stringify(state), {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       });
     }
@@ -45,10 +46,10 @@ export default {
           if (!state.historyByService) state.historyByService = {};
           
           const targetsMap = {
-            'slt_main': 'SillyLittle.tech',
-            'slt_socks': 'Socks (SLT)',
-            'slt_projects': 'Projects (SLT)',
-            'hotlinks': 'HotLinks (share.sillylittle.tech)'
+            'slt_main': 'SillyLittle.tech (lander)',
+            'slt_socks': 'Documentation (socks.@)',
+            'slt_projects': 'Projects (projects.@)',
+            'hotlinks': 'HotLinks (share.@)'
           };
           const existingName = state.services[body.serviceId]?.name || targetsMap[body.serviceId] || body.serviceId;
           
@@ -113,16 +114,17 @@ export default {
 // heartbeat and helpers (same as frontend/_worker.js)
 async function runHeartbeat(env) {
   const targets = [
-    { id: 'slt_main', url: 'https://sillylittle.tech', name: 'SillyLittle.tech' },
-    { id: 'slt_socks', url: 'https://socks.sillylittle.tech', name: 'Socks (SLT)' },
-    { id: 'slt_projects', url: 'https://projects.sillylittle.tech', name: 'Projects (SLT)' },
-    { id: 'hotlinks', url: 'https://share.sillylittle.tech/heartbeat', name: 'HotLinks (share.sillylittle.tech)' }
+    { id: 'slt_main', url: 'https://sillylittle.tech', name: 'SillyLittle.tech (lander)' },
+    { id: 'slt_socks', url: 'https://socks.sillylittle.tech', name: 'Documentation (socks.@)' },
+    { id: 'slt_projects', url: 'https://projects.sillylittle.tech', name: 'Projects (projects.@)' },
+    { id: 'hotlinks', url: 'https://share.sillylittle.tech/heartbeat', name: 'HotLinks (share.@)' }
   ];
 
   let state = await env.STATUS_KV.get('current_state', 'json');
   if (!state) state = { services: {}, incidents: [], maintenance: [], historyByService: {} };
   if (!state.services) state.services = {};
   if (!state.historyByService) state.historyByService = {};
+  normalizeServiceState(state);
 
   let statusChanged = false;
   let needsSave = false;
@@ -145,7 +147,8 @@ async function runHeartbeat(env) {
       const start = Date.now();
       const res = await fetch(target.url, { method: 'GET', redirect: 'manual', headers: {'User-Agent': 'SLT-Status-Worker'} });
       const measuredLatency = Date.now() - start;
-      if (res.status === 301) {
+      const isRedirectTarget = target.id === 'hotlinks';
+      if ((isRedirectTarget && res.status === 301) || (!isRedirectTarget && res.ok)) {
         isUp = true;
         latency = measuredLatency;
       }
@@ -260,6 +263,32 @@ function appendServiceHistory(state, serviceId, entry) {
 
   if (state.historyByService[serviceId].length > 1440) {
     state.historyByService[serviceId] = state.historyByService[serviceId].slice(-1440);
+  }
+}
+
+function normalizeServiceState(state) {
+  if (!state.services) state.services = {};
+
+  const canonicalNames = {
+    slt_main: 'SillyLittle.tech (lander)',
+    slt_socks: 'Documentation (socks.@)',
+    slt_projects: 'Projects (projects.@)',
+    hotlinks: 'HotLinks (share.@)'
+  };
+
+  for (const [serviceId, serviceName] of Object.entries(canonicalNames)) {
+    if (!state.services[serviceId]) {
+      state.services[serviceId] = {
+        name: serviceName,
+        status: 'Pending Check',
+        lastUpdated: null,
+        latency: null,
+        isManual: false
+      };
+      continue;
+    }
+
+    state.services[serviceId].name = serviceName;
   }
 }
 

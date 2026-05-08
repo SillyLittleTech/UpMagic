@@ -4,6 +4,7 @@
   "description": "Cloudflare Pages project for SLT Status Page",
   "scripts": {
     "dev": "wrangler dev",
+    "dev:scheduled": "wrangler dev --test-scheduled",
     "deploy": "wrangler deploy",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy"
