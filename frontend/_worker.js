@@ -48,7 +48,8 @@ export default {
           const targetsMap = {
             'slt_main': 'SillyLittle.tech',
             'slt_socks': 'Socks (SLT)',
-            'slt_projects': 'Projects (SLT)'
+            'slt_projects': 'Projects (SLT)',
+            'hotlinks': 'HotLinks (share.sillylittle.tech)'
           };
           const existingName = state.services[body.serviceId]?.name || targetsMap[body.serviceId] || body.serviceId;
           
@@ -113,7 +114,8 @@ async function runHeartbeat(env) {
   const targets = [
     { id: 'slt_main', url: 'https://sillylittle.tech', name: 'SillyLittle.tech' },
     { id: 'slt_socks', url: 'https://socks.sillylittle.tech', name: 'Socks (SLT)' },
-    { id: 'slt_projects', url: 'https://projects.sillylittle.tech', name: 'Projects (SLT)' }
+    { id: 'slt_projects', url: 'https://projects.sillylittle.tech', name: 'Projects (SLT)' },
+    { id: 'hotlinks', url: 'https://share.sillylittle.tech/heartbeat', name: 'HotLinks (share.sillylittle.tech)' }
   ];
 
   let state = await env.STATUS_KV.get('current_state', 'json');
@@ -134,9 +136,9 @@ async function runHeartbeat(env) {
     let latency = null;
     try {
       const start = Date.now();
-      const res = await fetch(target.url, { method: 'GET', headers: {'User-Agent': 'SLT-Status-Worker'} });
+      const res = await fetch(target.url, { method: 'GET', redirect: 'manual', headers: {'User-Agent': 'SLT-Status-Worker'} });
       const measuredLatency = Date.now() - start;
-      if (res.ok) {
+      if (res.status === 301) {
         isUp = true;
         latency = measuredLatency;
       }
