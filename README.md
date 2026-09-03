@@ -9,7 +9,7 @@ A decentralized, edge-computed monitoring tool built with Cloudflare Workers and
 
 ## Architecture
 
-- **Worker:** A Cloudflare Worker runs a cron trigger every minute to check the health of target services (`sillylittle.tech`, `socks.sillylittle.tech`, `projects.sillylittle.tech`). It stores the state in Cloudflare KV and double-writes to a GitHub Gist.
+- **Worker:** A Cloudflare Worker runs a cron trigger every minute to check the health of target services (`slt.ong`, `socks.slt.ong`, `projects.slt.ong`). It stores the state in Cloudflare KV and double-writes to a GitHub Gist.
 - **Frontend:** A statically hosted HTML/CSS/JS site following the "CookieCut" design language. It dynamically fetches state from the Worker's API and automatically falls back to the GitHub Gist during a partial Cloudflare outage.
 - **Notifications:** Built-in webhooks ping Slack or Discord on state changes.
 
@@ -47,13 +47,13 @@ npx wrangler deploy
 Once the worker is deployed, update `frontend/js/app.js` and `frontend/js/admin.js` with your production Worker URL.
 Also, update the `GIST_URL` variable in `frontend/js/app.js` to point to the raw URL of your GitHub Gist.
 
-**Deploy to Cloudflare Pages (status.sillylittle.tech):**
+**Deploy to Cloudflare Pages (status.slt.ong):**
 ```bash
 cd frontend
 npx wrangler pages deploy . --project-name slt-status
 ```
 
-**Deploy to GitHub Pages (status2.sillylittle.tech):**
+**Deploy to GitHub Pages (status2.slt.ong):**
 Commit the `frontend/` directory to a branch (e.g., `gh-pages`) in your target repository and configure GitHub Pages to serve from the root.
 
 ## Admin Dashboard

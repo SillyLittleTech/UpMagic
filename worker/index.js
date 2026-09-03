@@ -1,9 +1,9 @@
 // Worker entry copied from frontend/_worker.js to run as a standalone Worker + site
 const SERVICES = {
-  slt_main: { name: 'SillyLittle.tech (lander)', url: 'https://sillylittle.tech' },
-  slt_socks: { name: 'Documentation (socks.@)', url: 'https://socks.sillylittle.tech' },
-  slt_projects: { name: 'Projects (projects.@)', url: 'https://projects.sillylittle.tech' },
-  hotlinks: { name: 'HotLinks (share.@)', url: 'https://share.sillylittle.tech/heartbeat' }
+  slt_main: { name: 'slt.ong (lander)', url: 'https://slt.ong' },
+  slt_socks: { name: 'Documentation (socks.@)', url: 'https://socks.slt.ong' },
+  slt_projects: { name: 'Projects (projects.@)', url: 'https://projects.slt.ong' },
+  hotlinks: { name: 'HotLinks (share.@)', url: 'https://share.slt.ong/heartbeat' }
 };
 
 function createDefaultState() {
